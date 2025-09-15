@@ -85,6 +85,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('❌ Error in chunk:', chunk.error);
           setChatState(currentState => ({
             ...currentState,
+            isTyping: false,
             conversations: currentState.conversations.map(conv =>
               conv.id === conversationId
                 ? {
@@ -104,6 +105,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (chunk.done) {
           console.log('✅ Stream finished for message:', aiMessageId);
+          // Reset typing indicator when stream is done
+          setChatState(currentState => ({
+            ...currentState,
+            isTyping: false
+          }));
           break;
         }
 
@@ -145,6 +151,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // eslint-disable-next-line no-loop-func
       setChatState(currentState => ({
         ...currentState,
+        isTyping: false,
         conversations: currentState.conversations.map(conv =>
           conv.id === conversationId
             ? {
