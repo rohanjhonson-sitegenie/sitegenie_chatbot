@@ -71,7 +71,11 @@ export class SiteGenieApiService {
         requestBody.user_name = this.config.userName;
       }
 
-      const apiUrl = `${this.config.apiUrl}/process_query`;
+      // Use Vercel proxy in production to avoid CORS issues
+      const isProduction = window.location.hostname !== 'localhost';
+      const apiUrl = isProduction
+        ? '/api/proxy'
+        : `${this.config.apiUrl}/process_query`;
 
       console.log('🔄 API Request:', {
         url: apiUrl,
@@ -187,7 +191,13 @@ export class SiteGenieApiService {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${this.config.apiUrl}/upload`, {
+      // Use Vercel proxy in production to avoid CORS issues
+      const isProduction = window.location.hostname !== 'localhost';
+      const uploadUrl = isProduction
+        ? '/api/upload'
+        : `${this.config.apiUrl}/upload`;
+
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
