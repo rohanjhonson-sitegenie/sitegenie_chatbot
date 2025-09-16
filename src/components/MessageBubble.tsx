@@ -20,9 +20,156 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Enhanced markdown renderer with support for headings, lists, and formatting
+  const renderMarkdown = (text: string): React.ReactNode[] => {
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    let currentListItems: React.ReactNode[] = [];
+    let listType: 'ul' | 'ol' | null = null;
+
+    const processInlineMarkdown = (inputText: string): React.ReactNode[] => {
+      const result: React.ReactNode[] = [];
+
+      // Split by bold markers (**text**)
+      const boldParts = inputText.split(/(\*\*[^*]+\*\*)/g);
+
+      boldParts.forEach((boldPart, boldIndex) => {
+        if (boldPart.startsWith('**') && boldPart.endsWith('**') && boldPart.length > 4) {
+          // This is bold text
+          const boldText = boldPart.slice(2, -2);
+          result.push(
+            <strong key={`bold-${boldIndex}`} className="font-semibold text-gray-900 dark:text-gray-100">
+              {boldText}
+            </strong>
+          );
+        } else if (boldPart) {
+          // Process italic text (*text*) within this part
+          const italicParts = boldPart.split(/(\*[^*]+\*)/g);
+
+          italicParts.forEach((italicPart, italicIndex) => {
+            if (italicPart.startsWith('*') && italicPart.endsWith('*') && italicPart.length > 2 && !italicPart.includes('**')) {
+              // This is italic text
+              const italicText = italicPart.slice(1, -1);
+              result.push(
+                <em key={`italic-${boldIndex}-${italicIndex}`} className="italic">
+                  {italicText}
+                </em>
+              );
+            } else if (italicPart) {
+              // Regular text
+              result.push(italicPart);
+            }
+          });
+        }
+      });
+
+      return result;
+    };
+
+    const flushList = () => {
+      if (currentListItems.length > 0) {
+        if (listType === 'ul') {
+          elements.push(
+            <ul key={`list-${elements.length}`} className="list-disc list-inside ml-4 mb-3 space-y-1">
+              {currentListItems}
+            </ul>
+          );
+        } else if (listType === 'ol') {
+          elements.push(
+            <ol key={`list-${elements.length}`} className="list-decimal list-inside ml-4 mb-3 space-y-1">
+              {currentListItems}
+            </ol>
+          );
+        }
+        currentListItems = [];
+        listType = null;
+      }
+    };
+
+    lines.forEach((line, lineIndex) => {
+      const trimmedLine = line.trim();
+
+      // Skip empty lines but add spacing
+      if (!trimmedLine) {
+        flushList();
+        if (elements.length > 0) {
+          elements.push(<br key={`br-${lineIndex}`} />);
+        }
+        return;
+      }
+
+      // Handle headings
+      if (trimmedLine.startsWith('### ')) {
+        flushList();
+        const headingText = trimmedLine.slice(4);
+        elements.push(
+          <h3 key={`h3-${lineIndex}`} className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-4 mb-2">
+            {processInlineMarkdown(headingText)}
+          </h3>
+        );
+      } else if (trimmedLine.startsWith('## ')) {
+        flushList();
+        const headingText = trimmedLine.slice(3);
+        elements.push(
+          <h2 key={`h2-${lineIndex}`} className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-4 mb-3">
+            {processInlineMarkdown(headingText)}
+          </h2>
+        );
+      } else if (trimmedLine.startsWith('# ')) {
+        flushList();
+        const headingText = trimmedLine.slice(2);
+        elements.push(
+          <h1 key={`h1-${lineIndex}`} className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4 mb-3">
+            {processInlineMarkdown(headingText)}
+          </h1>
+        );
+      }
+      // Handle unordered lists (- or *)
+      else if (trimmedLine.match(/^[-*]\s+/)) {
+        if (listType !== 'ul') {
+          flushList();
+          listType = 'ul';
+        }
+        const listItemText = trimmedLine.replace(/^[-*]\s+/, '');
+        currentListItems.push(
+          <li key={`li-${lineIndex}`} className="text-gray-700 dark:text-gray-300">
+            {processInlineMarkdown(listItemText)}
+          </li>
+        );
+      }
+      // Handle ordered lists (1. 2. etc.)
+      else if (trimmedLine.match(/^\d+\.\s+/)) {
+        if (listType !== 'ol') {
+          flushList();
+          listType = 'ol';
+        }
+        const listItemText = trimmedLine.replace(/^\d+\.\s+/, '');
+        currentListItems.push(
+          <li key={`li-${lineIndex}`} className="text-gray-700 dark:text-gray-300">
+            {processInlineMarkdown(listItemText)}
+          </li>
+        );
+      }
+      // Handle regular paragraphs
+      else {
+        flushList();
+        elements.push(
+          <p key={`p-${lineIndex}`} className="text-gray-800 dark:text-gray-200 mb-2 leading-relaxed">
+            {processInlineMarkdown(trimmedLine)}
+          </p>
+        );
+      }
+    });
+
+    // Flush any remaining list
+    flushList();
+
+    return elements;
+  };
+
   return (
-    <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`flex max-w-xs lg:max-w-md ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-6`}>
+      <div className={`flex ${message.isUser ? 'max-w-xs lg:max-w-md' : 'max-w-lg lg:max-w-3xl'} ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div className={`flex-shrink-0 ${message.isUser ? 'ml-3' : 'mr-3'}`}>
           <div className={`
@@ -42,10 +189,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
 
         {/* Message Content */}
         <div className={`
-          px-4 py-2 rounded-2xl shadow-sm
+          px-5 py-4 rounded-2xl shadow-sm
           ${message.isUser
             ? 'bg-blue-600 text-white rounded-br-md'
-            : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-bl-md'
+            : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-bl-md'
           }
         `}>
           {/* File Attachment */}
@@ -79,9 +226,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
           )}
 
           {/* Message Text */}
-          <p className="text-sm whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
+          <div className="space-y-2">
+            {renderMarkdown(message.content)}
+          </div>
 
           {/* Timestamp */}
           <div className={`

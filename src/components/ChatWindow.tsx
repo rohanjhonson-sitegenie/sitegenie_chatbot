@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { User, Bot, File } from 'lucide-react';
+import { User, Bot, File, ChevronUp, Loader2 } from 'lucide-react';
 import { Conversation } from '../types';
 import { useChat } from '../context/ChatContext';
 import MessageBubble from './MessageBubble';
@@ -15,7 +15,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   conversation,
   isDarkMode,
 }) => {
-  const { sendMessage, isTyping } = useChat();
+  const { sendMessage, isTyping, loadMoreMessages } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -73,6 +73,36 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="flex flex-col h-full">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Load More Messages Button */}
+        {conversation.threadId && conversation.hasMoreMessages && (
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => loadMoreMessages(conversation.id)}
+              disabled={conversation.isLoadingMessages}
+              className="flex items-center space-x-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {conversation.isLoadingMessages ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ChevronUp className="w-4 h-4" />
+              )}
+              <span>
+                {conversation.isLoadingMessages ? 'Loading...' : 'Load More Messages'}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Loading indicator for initial message load */}
+        {conversation.isLoadingMessages && conversation.messages.length === 0 && (
+          <div className="flex justify-center items-center py-8">
+            <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Loading messages...</span>
+            </div>
+          </div>
+        )}
+
         {conversation.messages.map((message) => (
           <MessageBubble
             key={message.id}

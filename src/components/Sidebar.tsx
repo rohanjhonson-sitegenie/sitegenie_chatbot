@@ -7,7 +7,7 @@ import ApiConfiguration from './ApiConfiguration';
 interface SidebarProps {
   conversations: Conversation[];
   currentConversationId: string | null;
-  onSelectConversation: (id: string) => void;
+  onSelectConversation: (id: string, threadId?: string) => void;
   onCreateNewChat: () => void;
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, newTitle: string) => void;
@@ -175,7 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                   }
                 `}
-                onClick={() => onSelectConversation(conv.id)}
+                onClick={() => onSelectConversation(conv.id, conv.threadId)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">

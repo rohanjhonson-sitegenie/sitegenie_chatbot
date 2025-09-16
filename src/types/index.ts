@@ -19,6 +19,10 @@ export interface Conversation {
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
+  threadId?: string;
+  isLoadingMessages?: boolean;
+  hasMoreMessages?: boolean;
+  messageOffset?: number;
 }
 
 export interface ChatState {

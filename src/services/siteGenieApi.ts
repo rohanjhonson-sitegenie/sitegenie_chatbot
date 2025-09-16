@@ -22,6 +22,30 @@ export interface StreamingResponse {
   done?: boolean;
 }
 
+export interface ThreadMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  file_attachments?: {
+    name: string;
+    size: number;
+    type: string;
+    url?: string;
+  }[];
+}
+
+export interface GetThreadMessagesResponse {
+  success: boolean;
+  data: {
+    thread_id: string;
+    messages: ThreadMessage[];
+    total_count: number;
+    has_more?: boolean;
+  };
+  error?: string;
+}
+
 export class SiteGenieApiService {
   private config: SiteGenieConfig;
   private threadId: string | null = null;
@@ -71,18 +95,8 @@ export class SiteGenieApiService {
         requestBody.user_name = this.config.userName;
       }
 
-      // Use Vercel proxy in production to avoid CORS issues
-      const isProduction = window.location.hostname !== 'localhost';
-      const apiUrl = isProduction
-        ? '/api/proxy'
-        : `${this.config.apiUrl}/process_query`;
-
-      console.log('🔄 API Request:', {
-        url: apiUrl,
-        method: 'POST',
-        body: requestBody,
-        threadId: this.threadId
-      });
+      // Call Flask API directly
+      const apiUrl = `${this.config.apiUrl}/process_query`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -91,16 +105,6 @@ export class SiteGenieApiService {
         },
         body: JSON.stringify(requestBody),
       });
-
-      console.log('📡 API Response Status:', response.status, response.statusText);
-      console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
-
-      // Check for thread_id in response headers
-      const responseThreadId = response.headers.get('x-thread-id') || response.headers.get('thread-id');
-      if (responseThreadId && !this.threadId) {
-        console.log('🆔 Capturing thread_id from response:', responseThreadId);
-        this.threadId = responseThreadId;
-      }
 
       // Log 500 errors but continue processing since API still streams content
       if (response.status === 500) {
@@ -115,20 +119,49 @@ export class SiteGenieApiService {
 
       try {
         let fullResponse = '';
-        console.log('🔄 Starting to read stream...');
 
         while (true) {
           const { done, value } = await reader.read();
 
           if (done) {
-            console.log('✅ Stream completed. Full response (filtered):', fullResponse);
-            console.log('📊 Stream stats: Total response length =', fullResponse.length);
             yield { data: '', done: true };
             break;
           }
 
           const chunk = decoder.decode(value, { stream: true });
-          console.log('📦 Raw chunk received:', chunk);
+
+          // Filter out JSON metadata that appears at the end of API responses
+          const isJsonMetadata = chunk.includes('"thread_id"') ||
+                                 chunk.includes('"success"') ||
+                                 chunk.includes('"data"') ||
+                                 chunk.includes('"timestamp"') ||
+                                 (chunk.trim().startsWith('{') && chunk.trim().endsWith('}'));
+
+          // Look for thread_id in JSON response - this comes at the end of the stream
+          if (!this.threadId && chunk.includes('"thread_id"')) {
+            try {
+              // The complete response should be a JSON object
+              const jsonData = JSON.parse(chunk);
+              if (jsonData.success && jsonData.data && jsonData.data.thread_id) {
+                this.threadId = jsonData.data.thread_id;
+                // Skip this chunk - it's metadata, not display content
+                continue;
+              }
+            } catch (jsonError) {
+              // Fallback to regex pattern matching for malformed JSON
+              const threadIdMatch = chunk.match(/"thread_id":\s*"([a-zA-Z0-9\-_]+)"/);
+              if (threadIdMatch && threadIdMatch[1]) {
+                this.threadId = threadIdMatch[1];
+              }
+            }
+            // Always skip JSON metadata chunks
+            continue;
+          }
+
+          // Skip any other JSON metadata chunks
+          if (isJsonMetadata) {
+            continue;
+          }
 
           // Filter out HTML error pages and server error messages
           const isHtmlError = chunk.includes('<!doctype html>') ||
@@ -143,14 +176,12 @@ export class SiteGenieApiService {
                                 chunk.includes('500 Internal Server Error');
 
           if (isHtmlError || isErrorMessage) {
-            console.warn('🚫 Filtering out HTML/server error from stream:', chunk.substring(0, 100) + '...');
             continue; // Skip this chunk, don't add to response
           }
 
           // Process chunks immediately - even single characters
           if (chunk) {
             fullResponse += chunk;
-            console.log('⚡ Yielding chunk immediately:', chunk);
             yield {
               data: chunk,
               done: false
@@ -191,11 +222,8 @@ export class SiteGenieApiService {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Use Vercel proxy in production to avoid CORS issues
-      const isProduction = window.location.hostname !== 'localhost';
-      const uploadUrl = isProduction
-        ? '/api/upload'
-        : `${this.config.apiUrl}/upload`;
+      // Call Flask API directly
+      const uploadUrl = `${this.config.apiUrl}/upload`;
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
@@ -214,6 +242,38 @@ export class SiteGenieApiService {
     }
   }
 
+  public async getThreadMessages(
+    threadId: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<GetThreadMessagesResponse | null> {
+    try {
+      const apiUrl = `${this.config.apiUrl}/get_thread_messages`;
+      const params = new URLSearchParams({
+        thread_id: threadId,
+        limit: limit.toString(),
+        offset: offset.toString()
+      });
+
+      const response = await fetch(`${apiUrl}?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch thread messages: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result as GetThreadMessagesResponse;
+    } catch (error) {
+      console.error('Error fetching thread messages:', error);
+      return null;
+    }
+  }
+
   public resetThread(): void {
     this.threadId = null;
   }
@@ -222,10 +282,10 @@ export class SiteGenieApiService {
 // Default configuration - can be overridden
 export const defaultConfig: SiteGenieConfig = {
   apiUrl: 'https://flaskapi.sitegenie.ai',
-  assistantId: 'your-assistant-id', // This should be configured
-  companyId: 'your-company-id',     // This should be configured
-  userId: 1,                        // This should be configured
-  userName: 'User',                 // This should be configured
+  assistantId: 'asst_56DKvSzgipz00RS2OTedtNB5',
+  companyId: '20',
+  userId: 2,
+  userName: 'Rohan Jhonson',
 };
 
 // Singleton instance

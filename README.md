@@ -1,6 +1,6 @@
 # SiteGenie Chatbot
 
-A modern, responsive web-based chatbot application built with React and TypeScript. Features a ChatGPT-like interface with support for file uploads, voice-to-text input, conversation history, and search functionality.
+A modern, responsive web-based chatbot application built with React and TypeScript. Features a ChatGPT-like interface with support for file uploads, voice-to-text input, conversation history, search functionality, and optional cloud-based chat history logging.
 
 ## ✨ Features
 
