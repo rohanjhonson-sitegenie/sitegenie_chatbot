@@ -161,4 +161,4 @@ const simulateAIResponse = (userMessage: string): string => {
 
 ---
 
-Built with ❤️ using React, TypeScript, and Tailwind CSS
+Built with ❤️ using React, TypeScript, and Tailwind CSS!
