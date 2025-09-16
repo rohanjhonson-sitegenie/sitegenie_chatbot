@@ -189,19 +189,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
 
         {/* Message Content */}
         <div className={`
-          px-5 py-4 rounded-2xl shadow-sm
+          px-5 py-4 rounded-2xl shadow-lg transition-all duration-200 hover:shadow-xl
           ${message.isUser
-            ? 'bg-blue-600 text-white rounded-br-md'
-            : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-bl-md'
+            ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-md transform hover:scale-[1.01]'
+            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-bl-md hover:border-gray-300 dark:hover:border-gray-500'
           }
         `}>
           {/* File Attachment */}
           {message.fileAttachment && (
             <div className={`
-              flex items-center space-x-2 p-2 mb-2 rounded-lg
+              flex items-center space-x-3 p-3 mb-3 rounded-xl transition-all duration-200
               ${message.isUser
-                ? 'bg-blue-500 bg-opacity-50'
-                : 'bg-gray-100 dark:bg-gray-600'
+                ? 'bg-blue-500 bg-opacity-30 backdrop-blur-sm hover:bg-opacity-40'
+                : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-650 border border-gray-200 dark:border-gray-600'
               }
             `}>
               <File className="w-4 h-4 flex-shrink-0" />
@@ -216,24 +216,30 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
               {message.fileAttachment.url && (
                 <button
                   onClick={() => window.open(message.fileAttachment?.url, '_blank')}
-                  className="p-1 rounded hover:bg-black hover:bg-opacity-10"
+                  className="p-2 rounded-lg transition-all duration-200 hover:bg-black hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 hover:scale-110"
                   aria-label="Download file"
                 >
-                  <Download className="w-3 h-3" />
+                  <Download className="w-4 h-4" />
                 </button>
               )}
             </div>
           )}
 
           {/* Message Text */}
-          <div className="space-y-2">
+          <div className={`
+            space-y-3 leading-relaxed
+            ${message.isUser
+              ? 'text-white'
+              : 'text-gray-800 dark:text-gray-100'
+            }
+          `}>
             {renderMarkdown(message.content)}
           </div>
 
           {/* Timestamp */}
           <div className={`
-            text-xs mt-1 opacity-75
-            ${message.isUser ? 'text-right' : 'text-left'}
+            text-xs mt-3 opacity-75 transition-opacity duration-200 hover:opacity-100
+            ${message.isUser ? 'text-right text-blue-100' : 'text-left text-gray-500 dark:text-gray-400'}
           `}>
             {formatTime(message.timestamp)}
           </div>

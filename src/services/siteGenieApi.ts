@@ -130,12 +130,28 @@ export class SiteGenieApiService {
 
           const chunk = decoder.decode(value, { stream: true });
 
-          // Filter out JSON metadata that appears at the end of API responses
+          // Enhanced JSON metadata filtering
+          const isCompleteJsonObject = (text: string): boolean => {
+            const trimmed = text.trim();
+            if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
+              return false;
+            }
+            try {
+              JSON.parse(trimmed);
+              return true;
+            } catch {
+              return false;
+            }
+          };
+
           const isJsonMetadata = chunk.includes('"thread_id"') ||
                                  chunk.includes('"success"') ||
                                  chunk.includes('"data"') ||
                                  chunk.includes('"timestamp"') ||
-                                 (chunk.trim().startsWith('{') && chunk.trim().endsWith('}'));
+                                 chunk.includes('"status"') ||
+                                 chunk.includes('"message"') ||
+                                 chunk.includes('"response"') ||
+                                 isCompleteJsonObject(chunk);
 
           // Look for thread_id in JSON response - this comes at the end of the stream
           if (!this.threadId && chunk.includes('"thread_id"')) {
@@ -144,8 +160,8 @@ export class SiteGenieApiService {
               const jsonData = JSON.parse(chunk);
               if (jsonData.success && jsonData.data && jsonData.data.thread_id) {
                 this.threadId = jsonData.data.thread_id;
-                // Skip this chunk - it's metadata, not display content
-                continue;
+              } else if (jsonData.thread_id) {
+                this.threadId = jsonData.thread_id;
               }
             } catch (jsonError) {
               // Fallback to regex pattern matching for malformed JSON
@@ -161,6 +177,12 @@ export class SiteGenieApiService {
           // Skip any other JSON metadata chunks
           if (isJsonMetadata) {
             continue;
+          }
+
+          // Additional filtering for JSON-like structures that might slip through
+          const cleanedChunk = chunk.replace(/^\s*\{.*\}\s*$/g, '').trim();
+          if (cleanedChunk !== chunk.trim() && cleanedChunk.length === 0) {
+            continue; // This was a pure JSON object, skip it
           }
 
           // Filter out HTML error pages and server error messages
