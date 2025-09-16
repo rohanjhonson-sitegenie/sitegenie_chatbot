@@ -31,7 +31,12 @@ const convertThreadMessageToMessage = (threadMessage: ThreadMessage): Message =>
     isUser: threadMessage.role === 'user',
     timestamp: new Date(threadMessage.timestamp),
     fileAttachment: threadMessage.file_attachments && threadMessage.file_attachments.length > 0
-      ? threadMessage.file_attachments[0]
+      ? {
+          ...threadMessage.file_attachments[0],
+          file_id: threadMessage.file_attachments[0].url ?
+            threadMessage.file_attachments[0].url.split('/').pop()?.split('.')[0] :
+            undefined
+        }
       : undefined
   };
 };
@@ -239,13 +244,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userMessageId = uuidv4();
     const aiMessageId = uuidv4(); // Create AI message ID once
     let fileIds: string[] = [];
+    let uploadedFileData: {file_id: string, filename: string} | null = null;
 
     // Handle file upload if present
     if (file) {
+      console.log('💬 Processing file upload in sendMessage');
       const apiService = getSiteGenieApiService(apiConfig);
-      const fileId = await apiService.uploadFile(file);
-      if (fileId) {
-        fileIds.push(fileId);
+      uploadedFileData = await apiService.uploadFile(file);
+      if (uploadedFileData) {
+        fileIds.push(uploadedFileData.file_id);
+        console.log('💬 File uploaded, adding to fileIds:', fileIds);
+      } else {
+        console.error('💬 File upload failed, no file ID received');
       }
     }
 
@@ -258,6 +268,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: file.name,
         size: file.size,
         type: file.type,
+        file_id: uploadedFileData?.file_id,
       } : undefined,
     };
 

@@ -98,6 +98,13 @@ export class SiteGenieApiService {
       // Call Flask API directly with new v2 endpoint
       const apiUrl = `${this.config.apiUrl}/process_query_v2`;
 
+      // Enhanced debugging
+      console.log('🔍 Making API request to:', apiUrl);
+      console.log('📝 Request body:', JSON.stringify(requestBody, null, 2));
+      console.log('📋 Request headers:', {
+        'Content-Type': 'application/json',
+      });
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -106,9 +113,23 @@ export class SiteGenieApiService {
         body: JSON.stringify(requestBody),
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
       // Log 500 errors but continue processing since API still streams content
       if (response.status === 500) {
         console.warn('⚠️ API returned 500 status but will attempt to process stream anyway');
+
+        // Try to read the error response body for more details
+        if (response.body) {
+          const clonedResponse = response.clone();
+          try {
+            const errorText = await clonedResponse.text();
+            console.error('🚨 500 Error response body:', errorText);
+          } catch (e) {
+            console.error('🚨 Could not read error response body:', e);
+          }
+        }
       }
 
       if (!response.body) {
@@ -239,27 +260,50 @@ export class SiteGenieApiService {
     }
   }
 
-  public async uploadFile(file: File): Promise<string | null> {
+  public async uploadFile(file: File): Promise<{file_id: string, filename: string} | null> {
     try {
+      console.log('📤 Starting file upload:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       const formData = new FormData();
       formData.append('file', file);
 
-      // Call Flask API directly
-      const uploadUrl = `${this.config.apiUrl}/upload`;
+      // Call Flask API directly using the new upload_file endpoint
+      const uploadUrl = `${this.config.apiUrl}/upload_file`;
+      console.log('📤 Upload URL:', uploadUrl);
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📤 Upload response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('📤 Upload failed response:', errorText);
+        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      return result.file_id || null;
+      console.log('📤 Upload result:', result);
+
+      if (result.success && result.data) {
+        const uploadedFile = {
+          file_id: result.data.file_id,
+          filename: result.data.filename
+        };
+        console.log('✅ File uploaded successfully:', uploadedFile);
+        return uploadedFile;
+      }
+
+      console.warn('⚠️ Upload result does not contain expected data:', result);
+      return null;
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('❌ Error uploading file:', error);
       return null;
     }
   }

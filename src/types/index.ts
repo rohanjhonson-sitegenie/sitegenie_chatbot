@@ -11,6 +11,7 @@ export interface FileAttachment {
   size: number;
   type: string;
   url?: string;
+  file_id?: string;
 }
 
 export interface Conversation {

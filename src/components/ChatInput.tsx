@@ -56,6 +56,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/csv',
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
     ];
 
     if (file.size > maxSize) {
@@ -64,7 +67,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
 
     if (!allowedTypes.includes(file.type)) {
-      alert('File type not supported. Please upload .txt, .pdf, .docx, .xlsx, or .csv files.');
+      alert('File type not supported. Please upload .txt, .pdf, .docx, .xlsx, .csv, .png, .jpg, or .jpeg files.');
       return;
     }
 
@@ -259,7 +262,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".txt,.pdf,.docx,.xlsx,.csv"
+          accept=".txt,.pdf,.docx,.xlsx,.csv,.png,.jpg,.jpeg"
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) {
