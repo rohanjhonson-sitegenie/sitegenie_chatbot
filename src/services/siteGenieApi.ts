@@ -12,8 +12,8 @@ export interface ProcessQueryRequest {
   thread_id?: string;
   file_ids?: string[];
   company_id: string;
-  user_id?: number;
-  user_name?: string;
+  user_id: number;
+  user_name: string;
 }
 
 export interface StreamingResponse {
@@ -85,18 +85,18 @@ export class SiteGenieApiService {
         assistant_id: this.config.assistantId,
         company_id: this.config.companyId,
         file_ids: fileIds,
+        // ✅ Always require user_id and user_name from request params
+        user_id: this.config.userId,
+        user_name: this.config.userName,
       };
 
-      // Add thread_id if we have one, otherwise include user info for new thread creation
+      // Add thread_id if we have one
       if (this.threadId) {
         requestBody.thread_id = this.threadId;
-      } else {
-        requestBody.user_id = this.config.userId;
-        requestBody.user_name = this.config.userName;
       }
 
-      // Call Flask API directly
-      const apiUrl = `${this.config.apiUrl}/process_query`;
+      // Call Flask API directly with new v2 endpoint
+      const apiUrl = `${this.config.apiUrl}/process_query_v2`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
