@@ -5,6 +5,7 @@ import { useChat } from '../context/ChatContext';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
+import aiAvatar from '../assets/images/ai-avatar.png';
 
 interface ChatWindowProps {
   conversation: Conversation | undefined;
@@ -32,14 +33,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Welcome Message */}
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 sparkle hover-scale smooth-transition">
-              <Bot className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-6 sparkle hover-scale smooth-transition shadow-lg">
+              <img
+                src={aiAvatar}
+                alt="AI Assistant"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-full bg-blue-600 rounded-2xl flex items-center justify-center">
+                <Bot className="w-8 h-8 text-white" />
+              </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
               Welcome to SiteGenie
             </h2>
             <p className="text-blue-600 dark:text-blue-400 mb-6 font-medium">
-              AI Design Assistant
+              AI Assistant
             </p>
             <p className="text-gray-600 dark:text-gray-400 mb-8">
               Start a conversation by typing a message, uploading a file, or using voice input.

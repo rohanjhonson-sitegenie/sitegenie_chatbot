@@ -1,6 +1,8 @@
 import React from 'react';
 import { User, Bot, File, Download } from 'lucide-react';
 import { Message } from '../types';
+import userAvatar from '../assets/images/user-avatar.png';
+import aiAvatar from '../assets/images/ai-avatar.png';
 
 interface MessageBubbleProps {
   message: Message;
@@ -170,8 +172,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
   return (
     <div className={`flex items-start space-x-4 ${message.isUser ? 'justify-end' : 'justify-start'} message-slide`}>
       {!message.isUser && (
-        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover-scale smooth-transition">
-          <Bot className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 rounded-full overflow-hidden hover-scale smooth-transition shadow-md">
+          <img
+            src={aiAvatar}
+            alt="AI Assistant"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <div className="hidden w-full h-full bg-blue-600 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
         </div>
       )}
 
@@ -256,8 +270,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
       </div>
 
       {message.isUser && (
-        <div className="w-10 h-10 glass-blue rounded-full flex items-center justify-center hover-scale smooth-transition">
-          <User className="w-5 h-5 text-blue-600" />
+        <div className="w-10 h-10 rounded-full overflow-hidden hover-scale smooth-transition shadow-md">
+          <img
+            src={userAvatar}
+            alt="User"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <div className="hidden w-full h-full glass-blue rounded-full flex items-center justify-center">
+            <User className="w-5 h-5 text-blue-600" />
+          </div>
         </div>
       )}
     </div>

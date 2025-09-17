@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import ChatWindow from './ChatWindow';
 import { Conversation } from '../types';
 import { SiteGenieConfig } from '../services/siteGenieApi';
+import aiAvatar from '../assets/images/ai-avatar.png';
 
 interface LayoutProps {
   conversations: Conversation[];
@@ -93,14 +94,26 @@ const Layout: React.FC<LayoutProps> = ({
                 )}
               </button>
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center sparkle hover-scale smooth-transition">
-                  <MessageSquare className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-2xl overflow-hidden sparkle hover-scale smooth-transition shadow-lg">
+                  <img
+                    src={aiAvatar}
+                    alt="SiteGenie AI"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="hidden w-full h-full bg-blue-600 rounded-2xl flex items-center justify-center">
+                    <MessageSquare className="w-6 h-6 text-white" />
+                  </div>
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                     SiteGenie
                   </h1>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">AI Design Assistant</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">AI Assistant</p>
                 </div>
               </div>
             </div>
