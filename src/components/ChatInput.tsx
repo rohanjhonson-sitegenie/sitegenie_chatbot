@@ -155,103 +155,100 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {/* File Attachment Display */}
       {attachedFile && (
-        <div className="mb-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Paperclip className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+        <div className="mb-4 p-3 glass rounded-2xl flex items-center justify-between hover-lift smooth-transition">
+          <div className="flex items-center space-x-3">
+            <Paperclip className="w-4 h-4 text-blue-600" />
+            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
               {attachedFile.name} ({formatFileSize(attachedFile.size)})
             </span>
           </div>
           <button
             onClick={removeAttachedFile}
-            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
+            className="p-1.5 glass hover:glass-strong rounded-lg hover-scale smooth-transition"
             aria-label="Remove file"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-gray-500 hover:text-red-500" />
           </button>
         </div>
       )}
 
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="relative">
-        <div
-          className={`
-            relative flex items-end space-x-2 p-3 rounded-lg border-2 transition-colors
-            ${isDragging
-              ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
-              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
-            }
-            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-          onDrop={handleFileDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          role="group"
-          aria-label="Message input area"
-        >
-          {/* Drag Overlay */}
-          {isDragging && (
-            <div className="absolute inset-0 flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 rounded-lg z-10">
-              <div className="text-center">
-                <Paperclip className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                <p className="text-blue-600 dark:text-blue-400 font-medium">
-                  Drop file here to attach
-                </p>
-              </div>
-            </div>
-          )}
+        <div className="flex items-end space-x-4">
+          <div className="flex space-x-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled}
+              className="p-3 glass hover-glass rounded-2xl text-blue-600 hover:text-blue-700 smooth-transition hover-scale hover-glow disabled:cursor-not-allowed"
+              aria-label="Attach file"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+              disabled={disabled}
+              className={`
+                p-3 glass hover-glass rounded-2xl smooth-transition hover-scale hover-glow disabled:cursor-not-allowed
+                ${isRecording
+                  ? 'text-red-500 hover:text-red-600'
+                  : 'text-blue-600 hover:text-blue-700'
+                }
+              `}
+              aria-label={isRecording ? 'Stop recording' : 'Start voice recording'}
+            >
+              {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </button>
+          </div>
 
-          {/* File Upload Button */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            className="flex-shrink-0 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:cursor-not-allowed"
-            aria-label="Attach file"
-          >
-            <Paperclip className="w-5 h-5" />
-          </button>
-
-          {/* Text Input */}
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              adjustTextareaHeight();
-            }}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            disabled={disabled}
-            className="flex-1 resize-none border-none outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[20px] max-h-[120px] disabled:cursor-not-allowed"
-            rows={1}
-          />
-
-          {/* Voice Recording Button */}
-          <button
-            type="button"
-            onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
-            disabled={disabled}
+          <div
             className={`
-              flex-shrink-0 p-2 transition-colors disabled:cursor-not-allowed
-              ${isRecording
-                ? 'text-red-500 hover:text-red-600'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-              }
+              flex-1 relative glass rounded-3xl smooth-transition hover-lift
+              ${isDragging ? 'glass-blue-strong' : 'focus-within:glass-strong'}
+              ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
             `}
-            aria-label={isRecording ? 'Stop recording' : 'Start voice recording'}
+            onDrop={handleFileDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            role="group"
+            aria-label="Message input area"
           >
-            {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-          </button>
+            {/* Drag Overlay */}
+            {isDragging && (
+              <div className="absolute inset-0 flex items-center justify-center glass-blue-strong rounded-3xl z-10">
+                <div className="text-center">
+                  <Paperclip className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                  <p className="text-blue-600 dark:text-blue-400 font-medium">
+                    Drop file here to attach
+                  </p>
+                </div>
+              </div>
+            )}
 
-          {/* Send Button */}
+            {/* Text Input */}
+            <textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                adjustTextareaHeight();
+              }}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message here..."
+              disabled={disabled}
+              className="w-full px-6 py-4 resize-none border-none outline-none bg-transparent text-gray-800 dark:text-gray-100 placeholder-blue-400 min-h-[44px] max-h-[120px] disabled:cursor-not-allowed rounded-3xl"
+              rows={1}
+            />
+          </div>
+
           <button
             type="submit"
             disabled={(!message.trim() && !attachedFile) || disabled}
-            className="flex-shrink-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="sparkle bg-blue-600 hover:bg-blue-700 p-4 rounded-2xl text-white smooth-transition hover-scale shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Send message"
           >
             <Send className="w-5 h-5" />
@@ -273,11 +270,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
         />
       </form>
 
+      <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+        <span>Press Enter to send, Shift + Enter for new line</span>
+        <span>{message.length}/2000</span>
+      </div>
+
       {/* Recording Indicator */}
       {isRecording && (
-        <div className="mt-2 flex items-center justify-center space-x-2 text-red-500">
+        <div className="mt-3 flex items-center justify-center space-x-2 text-red-500">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-sm">Recording...</span>
+          <span className="text-sm font-medium">Recording...</span>
         </div>
       )}
     </div>

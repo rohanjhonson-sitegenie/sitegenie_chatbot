@@ -168,83 +168,98 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode }) =>
   };
 
   return (
-    <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-6`}>
-      <div className={`flex ${message.isUser ? 'max-w-xs lg:max-w-md' : 'max-w-lg lg:max-w-3xl'} ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Avatar */}
-        <div className={`flex-shrink-0 ${message.isUser ? 'ml-3' : 'mr-3'}`}>
-          <div className={`
-            w-8 h-8 rounded-full flex items-center justify-center
-            ${message.isUser
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-            }
-          `}>
-            {message.isUser ? (
-              <User className="w-4 h-4" />
-            ) : (
-              <Bot className="w-4 h-4" />
-            )}
-          </div>
+    <div className={`flex items-start space-x-4 ${message.isUser ? 'justify-end' : 'justify-start'} message-slide`}>
+      {!message.isUser && (
+        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover-scale smooth-transition">
+          <Bot className="w-5 h-5 text-white" />
         </div>
+      )}
 
-        {/* Message Content */}
-        <div className={`
-          px-5 py-4 rounded-2xl shadow-lg transition-all duration-200 hover:shadow-xl
-          ${message.isUser
-            ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-md transform hover:scale-[1.01]'
-            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-bl-md hover:border-gray-300 dark:hover:border-gray-500'
-          }
-        `}>
-          {/* File Attachment */}
-          {message.fileAttachment && (
-            <div className={`
-              flex items-center space-x-3 p-3 mb-3 rounded-xl transition-all duration-200
-              ${message.isUser
-                ? 'bg-blue-500 bg-opacity-30 backdrop-blur-sm hover:bg-opacity-40'
-                : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-650 border border-gray-200 dark:border-gray-600'
-              }
-            `}>
-              <File className="w-4 h-4 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {message.fileAttachment.name}
-                </p>
-                <p className="text-xs opacity-75">
-                  {formatFileSize(message.fileAttachment.size)}
-                </p>
-              </div>
-              {message.fileAttachment.url && (
-                <button
-                  onClick={() => window.open(message.fileAttachment?.url, '_blank')}
-                  className="p-2 rounded-lg transition-all duration-200 hover:bg-black hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 hover:scale-110"
-                  aria-label="Download file"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
+      <div className={`flex-1 ${message.isUser ? 'max-w-2xl flex justify-end' : 'max-w-2xl'}`}>
+        {message.isUser ? (
+          <div>
+            <div className="bg-blue-600 text-white rounded-3xl rounded-tr-md p-5 hover-lift smooth-transition shadow-lg">
+              {/* File Attachment */}
+              {message.fileAttachment && (
+                <div className="flex items-center space-x-3 p-3 mb-3 rounded-xl bg-blue-500 bg-opacity-30 backdrop-blur-sm hover:bg-opacity-40 smooth-transition">
+                  <File className="w-4 h-4 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {message.fileAttachment.name}
+                    </p>
+                    <p className="text-xs opacity-75">
+                      {formatFileSize(message.fileAttachment.size)}
+                    </p>
+                  </div>
+                  {message.fileAttachment.url && (
+                    <button
+                      onClick={() => window.open(message.fileAttachment?.url, '_blank')}
+                      className="p-2 rounded-lg hover:bg-black hover:bg-opacity-10 hover-scale smooth-transition"
+                      aria-label="Download file"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               )}
+
+              {/* Message Text */}
+              <div className="space-y-3 leading-relaxed text-white">
+                {renderMarkdown(message.content)}
+              </div>
+
+              {/* Timestamp */}
+              <div className="text-xs mt-3 text-right text-blue-100 opacity-75">
+                {formatTime(message.timestamp)}
+              </div>
             </div>
-          )}
-
-          {/* Message Text */}
-          <div className={`
-            space-y-3 leading-relaxed
-            ${message.isUser
-              ? 'text-white'
-              : 'text-gray-800 dark:text-gray-100'
-            }
-          `}>
-            {renderMarkdown(message.content)}
           </div>
+        ) : (
+          <div className="flex-1">
+            <div className="glass-subtle rounded-3xl rounded-tl-md p-5 hover-lift smooth-transition">
+              {/* File Attachment */}
+              {message.fileAttachment && (
+                <div className="flex items-center space-x-3 p-3 mb-3 rounded-xl glass hover:glass-strong smooth-transition">
+                  <File className="w-4 h-4 flex-shrink-0 text-blue-600" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate text-gray-800 dark:text-gray-200">
+                      {message.fileAttachment.name}
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {formatFileSize(message.fileAttachment.size)}
+                    </p>
+                  </div>
+                  {message.fileAttachment.url && (
+                    <button
+                      onClick={() => window.open(message.fileAttachment?.url, '_blank')}
+                      className="p-2 rounded-lg glass hover:glass-strong hover-scale smooth-transition"
+                      aria-label="Download file"
+                    >
+                      <Download className="w-4 h-4 text-blue-600" />
+                    </button>
+                  )}
+                </div>
+              )}
 
-          {/* Timestamp */}
-          <div className={`
-            text-xs mt-3 opacity-75 transition-opacity duration-200 hover:opacity-100
-            ${message.isUser ? 'text-right text-blue-100' : 'text-left text-gray-500 dark:text-gray-400'}
-          `}>
-            {formatTime(message.timestamp)}
+              {/* Message Text */}
+              <div className="space-y-3 leading-relaxed text-gray-800 dark:text-gray-200">
+                {renderMarkdown(message.content)}
+              </div>
+
+              {/* Timestamp */}
+              <div className="text-xs mt-3 text-left text-gray-500 dark:text-gray-400 opacity-75">
+                {formatTime(message.timestamp)}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {message.isUser && (
+        <div className="w-10 h-10 glass-blue rounded-full flex items-center justify-center hover-scale smooth-transition">
+          <User className="w-5 h-5 text-blue-600" />
+        </div>
+      )}
     </div>
   );
 };

@@ -42,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({
 
   return (
     <div className={`flex h-screen ${isDarkMode ? 'dark' : ''}`}>
-      <div className="flex w-full bg-gray-50 dark:bg-gray-900">
+      <div className="flex w-full bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
         {/* Mobile Overlay */}
         {isHistoryPanelOpen && (
           <div
@@ -58,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({
           ${isHistoryPanelOpen ? 'left-0 lg:left-auto' : ''}
           top-0 h-full z-50 lg:z-auto
           transition-all duration-300 ease-in-out overflow-hidden
-          bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+          glass-subtle dark:bg-gray-800 border-r border-blue-100 dark:border-gray-700
         `}>
           <Sidebar
             conversations={conversations}
@@ -77,26 +77,37 @@ const Layout: React.FC<LayoutProps> = ({
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-white/70 dark:bg-gray-900/70">
           {/* Header */}
-          <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3">
+          <header className="flex items-center justify-between p-6 glass-subtle dark:bg-gray-800 border-b border-blue-100 dark:border-gray-700">
+            <div className="flex items-center space-x-4">
               <button
                 onClick={onToggleHistoryPanel}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 glass hover-glass rounded-xl text-blue-600 dark:text-gray-300 smooth-transition lg:hidden"
                 aria-label={isHistoryPanelOpen ? 'Close sidebar' : 'Open sidebar'}
               >
                 {isHistoryPanelOpen ? (
-                  <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <X className="w-5 h-5" />
                 ) : (
-                  <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <Menu className="w-5 h-5" />
                 )}
               </button>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center sparkle hover-scale smooth-transition">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                    SiteGenie
+                  </h1>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">AI Design Assistant</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                  SiteGenie Chat
-                </h1>
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Online</span>
               </div>
             </div>
           </header>
